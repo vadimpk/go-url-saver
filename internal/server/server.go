@@ -13,7 +13,7 @@ type Server struct {
 
 func (s *Server) Run(cfg *config.Config, handler http.Handler) error {
 	s.HTTPServer = &http.Server{
-		Addr:           ":" + cfg.Port,
+		Addr:           ":" + cfg.Server.Port,
 		Handler:        handler,
 		MaxHeaderBytes: 1 << 20, // 1 MB
 		ReadTimeout:    10 * time.Second,

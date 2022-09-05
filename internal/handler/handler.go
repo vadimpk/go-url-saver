@@ -20,24 +20,15 @@ func (h *Handler) Init() *gin.Engine {
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
 	}
-	api := router.Group("/api")
+	api := router.Group("/api", h.userIdentity)
 	{
-		lists := api.Group("/lists")
+		urls := api.Group("/urls")
 		{
-			lists.POST("/", h.signIn)
-			lists.GET("/", h.signIn)
-			lists.GET("/:id", h.signIn)
-			lists.PUT("/:id", h.signIn)
-			lists.DELETE("/:id", h.signIn)
-
-			urls := api.Group("/:id/urls")
-			{
-				urls.POST("/", h.signIn)
-				urls.GET("/", h.signIn)
-				urls.GET("/:url_id", h.signIn)
-				urls.PUT("/:url_id", h.signIn)
-				urls.DELETE("/:url_id", h.signIn)
-			}
+			urls.POST("/", h.createUrl)
+			urls.GET("/", h.getUrls)
+			urls.GET("/:url_id", h.getUrlByID)
+			urls.PUT("/:url_id", h.updateUrl)
+			urls.DELETE("/:url_id", h.deleteUrl)
 		}
 	}
 
