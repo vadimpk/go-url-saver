@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"go-urlsaver/internal/config"
@@ -9,6 +10,9 @@ import (
 	"go-urlsaver/internal/repository/postgres"
 	"go-urlsaver/internal/server"
 	"go-urlsaver/internal/service"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func Run(configPath string) {
@@ -28,9 +32,26 @@ func Run(configPath string) {
 	handlers := handler.NewHandler(services)
 
 	srv := new(server.Server)
-	err = srv.Run(cfg, handlers.Init())
-	if err != nil {
-		logrus.Fatalf("error occurred while running http server: %s", err.Error())
+
+	go func() {
+		if err := srv.Run(cfg, handlers.Init()); err != nil {
+			logrus.Fatalf("error occurred while running http server: %s", err.Error())
+		}
+	}()
+
+	logrus.Println("Url Saver App Started")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	logrus.Println("Url Saver App Shutting Down")
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		logrus.Errorf("error occurred while shutting down server: %s", err.Error())
 	}
 
+	if err := db.Close(); err != nil {
+		logrus.Errorf("error occurred while closing database: %s", err.Error())
+	}
 }
